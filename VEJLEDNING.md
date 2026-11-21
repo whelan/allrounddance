@@ -98,19 +98,12 @@ Tip: Gem admin-siden som bogmærke / på hjemmeskærmen. Del kun linket til
 
 ---
 
-## Del 4 – Logo
+## Del 4 – Logo (klaret)
 
-Siderne viser automatisk logoet, når der ligger en fil der hedder
-**`logo.png`** i repoet.
-
-1. Gem logoet på din computer og omdøb filen til `logo.png`
-   (små bogstaver, PNG-format; gerne kvadratisk eller bredt, ca. 200–400 px).
-2. Gå til https://github.com/whelan/allrounddance
-3. Klik **Add file** → **Upload files**.
-4. Træk `logo.png` ind i feltet.
-5. Klik **Commit changes**.
-6. Efter 1–2 minutter står logoet i toppen af begge sider og som ikon i
-   browserfanen.
+Logoet ligger allerede i repoet som `logo.png` (banneret øverst på siderne)
+og `icon.png` (ikonet i browserfanen / på hjemmeskærmen). Vil du skifte det,
+så upload en ny fil med samme navn: **Add file** → **Upload files** →
+**Commit changes**.
 
 ---
 
