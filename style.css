@@ -113,3 +113,11 @@ ol.queue .txt { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 .btn.small { padding: 6px 10px; min-width: 38px; }
 .btn.danger { color: var(--red); }
 header .btn { background: rgba(255, 255, 255, .15); border: 0; color: #fff; }
+
+/* Logo: vises automatisk, når logo.png ligger i repoet */
+header h1.brand { display: flex; align-items: center; gap: 10px; }
+header .logo {
+  height: 44px; width: auto; max-width: 120px;
+  background: #fff; border-radius: 8px; padding: 3px;
+  object-fit: contain;
+}
