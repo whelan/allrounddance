@@ -64,7 +64,10 @@
       const txt = document.createElement('span');
       txt.className = 'txt';
       txt.textContent = dance.name;
-      li.append(num, txt);
+      const main = document.createElement('span');
+      main.className = 'main';
+      main.append(num, txt);
+      li.append(main);
       queueEl.appendChild(li);
     });
     queueEmpty.hidden = rest.length > 0;
