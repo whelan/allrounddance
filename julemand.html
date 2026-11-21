@@ -9,20 +9,6 @@
 <link rel="icon" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="stylesheet" href="style.css">
-<style>
-  form.add { display: flex; gap: 8px; margin-bottom: 18px; }
-  form.add input {
-    flex: 1 1 auto; min-width: 0;
-    border: 1px solid var(--line); border-radius: 10px;
-    padding: 11px 14px; font-size: 16px; background: #fff;
-  }
-  .now .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .now .btn.primary { font-size: 17px; padding: 12px 18px; }
-  ol.queue .tools { display: flex; gap: 4px; flex: 0 0 auto; }
-  ol.queue li.current { border-color: var(--gold); border-width: 2px; }
-  .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 10px; flex-wrap: wrap; }
-  .footer a { color: var(--red); }
-</style>
 </head>
 <body>
 <div class="banner"><img src="logo.png" alt="Allround Dance – kom og lær linedance hos os"></div>
@@ -35,18 +21,14 @@
 
 <main class="wrap">
   <form class="add" id="addForm" autocomplete="off">
-    <input id="name" maxlength="150" placeholder="Ny dans, f.eks. Stand By Me" required>
+    <input id="name" maxlength="150" placeholder="Skriv ny dans" aria-label="Ny dans" required>
     <button class="btn primary" type="submit">Tilføj</button>
   </form>
 
   <section class="now">
-    <div class="row">
-      <div>
-        <div class="label"><span class="dot"></span>Spilles nu</div>
-        <div class="name" id="now"><span class="empty">Henter…</span></div>
-      </div>
-      <button class="btn primary" id="next" type="button" disabled>Næste dans ▶</button>
-    </div>
+    <div class="label"><span class="dot"></span>Spilles nu</div>
+    <div class="name" id="now"><span class="empty">Henter…</span></div>
+    <button class="btn primary next" id="next" type="button" disabled>Næste dans ▶</button>
   </section>
 
   <h2>Kø</h2>
@@ -83,7 +65,7 @@
   function btn(label, title, onClick, disabled) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'btn small';
+    b.className = 'btn icon';
     b.textContent = label;
     b.title = title;
     b.setAttribute('aria-label', title);
@@ -122,9 +104,14 @@
       tools.append(
         btn('↑', 'Flyt op', () => send({ action: 'move', id: dance.id, dir: -1 }), i === 0),
         btn('↓', 'Flyt ned', () => send({ action: 'move', id: dance.id, dir: 1 }), i === dances.length - 1),
-        btn('✕', 'Slet ' + dance.name, () => send({ action: 'remove', id: dance.id }))
+        btn('✕', 'Slet ' + dance.name, () => {
+          if (confirm('Slet "' + dance.name + '" fra listen?')) send({ action: 'remove', id: dance.id });
+        })
       );
-      li.append(num, txt, tools);
+      const main = document.createElement('span');
+      main.className = 'main';
+      main.append(num, txt);
+      li.append(main, tools);
       queueEl.appendChild(li);
     });
     queueEmpty.hidden = dances.length > 0;
