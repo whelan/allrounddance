@@ -17,29 +17,10 @@ automatisk hvert 20. sekund.
 ## Opsætning (gratis, én gang)
 
 GitHub Pages kan kun vise filer, ikke gemme noget. Listen gemmes derfor i
-Cloudflare KV via en lille Worker (`worker.js`) – samme slags som
-djfeed-proxy'en.
+Cloudflare KV via en lille Worker (`worker.js`).
 
-### 1. Cloudflare
-
-1. Gå til https://dash.cloudflare.com → **Storage & Databases** → **KV** →
-   **Create**. Kald det f.eks. `allrounddance`.
-2. **Workers & Pages** → **Create** → **Worker**. Kald den `allrounddance`
-   og tryk **Deploy**.
-3. **Edit code**: erstat skabelonen med indholdet af `worker.js` og tryk
-   **Deploy**.
-4. Workerens **Settings** → **Bindings** → **Add** → **KV namespace**:
-   - Variable name: `DANSE`
-   - KV namespace: `allrounddance`
-5. Kopiér Workerens adresse (`https://allrounddance.<dit-navn>.workers.dev`).
-   Hvis den ikke er `https://allrounddance.larsmhansen.workers.dev/`, så ret
-   `API_URL` i `config.js`.
-
-### 2. GitHub Pages
-
-Repo → **Settings** → **Pages** → *Source*: **Deploy from a branch**,
-*Branch*: `main` / `(root)` → **Save**. Efter et minut virker siderne på
-adresserne ovenfor.
+**Følg [VEJLEDNING.md](VEJLEDNING.md) trin for trin** – GitHub Pages,
+Cloudflare, test og logo.
 
 ## Gratis-grænser
 

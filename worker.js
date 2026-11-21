@@ -58,6 +58,9 @@ export default {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
+    if (!env.DANSE) {
+      return json({ error: 'KV-bindingen DANSE mangler (se VEJLEDNING.md, del 2 D)' }, 500);
+    }
     if (request.method === 'GET') {
       return json(await load(env));
     }
