@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Danse – Allround Dance</title>
+<meta name="theme-color" content="#a30d0d">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Allround Dance<small>Danse i aften</small></h1>
+    <button class="btn" id="refresh" type="button">Opdatér</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="now" aria-live="polite">
+    <div class="label"><span class="dot"></span>Spilles nu</div>
+    <div class="name" id="now"><span class="empty">Henter…</span></div>
+  </section>
+
+  <h2>Kommer snart</h2>
+  <ol class="queue" id="queue"></ol>
+  <p class="empty" id="queueEmpty" hidden>Ingen flere danse i køen endnu.</p>
+
+  <p class="status" id="status"></p>
+</main>
+
+<script src="config.js"></script>
+<script>
+  // Listen opdateres automatisk. Hent ikke for tit: Cloudflares gratis plan
+  // tillader 100.000 kald om dagen i alt, for alle der kigger.
+  const POLL_MS = 20000;
+
+  const nowEl = document.getElementById('now');
+  const queueEl = document.getElementById('queue');
+  const queueEmpty = document.getElementById('queueEmpty');
+  const statusEl = document.getElementById('status');
+  let timer = null;
+
+  function render(data) {
+    const [current, ...rest] = data.dances;
+    nowEl.textContent = '';
+    if (current) {
+      nowEl.textContent = current.name;
+    } else {
+      const span = document.createElement('span');
+      span.className = 'empty';
+      span.textContent = 'Ingen dans lige nu';
+      nowEl.appendChild(span);
+    }
+
+    queueEl.textContent = '';
+    rest.forEach((dance, i) => {
+      const li = document.createElement('li');
+      const num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = i + 1;
+      const txt = document.createElement('span');
+      txt.className = 'txt';
+      txt.textContent = dance.name;
+      li.append(num, txt);
+      queueEl.appendChild(li);
+    });
+    queueEmpty.hidden = rest.length > 0;
+  }
+
+  async function refresh() {
+    try {
+      const res = await fetch(API_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      render(await res.json());
+      statusEl.className = 'status';
+      statusEl.textContent = 'Opdateret ' +
+        new Date().toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } catch (err) {
+      statusEl.className = 'status error';
+      statusEl.textContent = 'Kunne ikke hente listen (' + err.message + '). Prøver igen…';
+    }
+  }
+
+  function start() {
+    clearInterval(timer);
+    refresh();
+    timer = setInterval(refresh, POLL_MS);
+  }
+
+  // Stop med at hente, når siden ligger i baggrunden, og hent straks igen,
+  // når den kommer frem.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearInterval(timer);
+    else start();
+  });
+  document.getElementById('refresh').addEventListener('click', refresh);
+  start();
+</script>
+</body>
+</html>
