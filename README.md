@@ -20,7 +20,7 @@ GitHub Pages kan kun vise filer, ikke gemme noget. Listen gemmes derfor i
 Cloudflare KV via en lille Worker (`worker.js`).
 
 **Følg [VEJLEDNING.md](VEJLEDNING.md) trin for trin** – GitHub Pages,
-Cloudflare, test og logo.
+Cloudflare og test.
 
 ## Gratis-grænser
 
