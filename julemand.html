@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Allround Dance</title>
+<meta name="theme-color" content="#a30d0d">
+<link rel="stylesheet" href="style.css">
+<style>
+  form.add { display: flex; gap: 8px; margin-bottom: 18px; }
+  form.add input {
+    flex: 1 1 auto; min-width: 0;
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 14px; font-size: 16px; background: #fff;
+  }
+  .now .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .now .btn.primary { font-size: 17px; padding: 12px 18px; }
+  ol.queue .tools { display: flex; gap: 4px; flex: 0 0 auto; }
+  ol.queue li.current { border-color: var(--gold); border-width: 2px; }
+  .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 10px; flex-wrap: wrap; }
+  .footer a { color: var(--red); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Allround Dance<small>Styr dansekøen</small></h1>
+    <button class="btn" id="refresh" type="button">Opdatér</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <form class="add" id="addForm" autocomplete="off">
+    <input id="name" maxlength="150" placeholder="Ny dans, f.eks. Stand By Me" required>
+    <button class="btn primary" type="submit">Tilføj</button>
+  </form>
+
+  <section class="now">
+    <div class="row">
+      <div>
+        <div class="label"><span class="dot"></span>Spilles nu</div>
+        <div class="name" id="now"><span class="empty">Henter…</span></div>
+      </div>
+      <button class="btn primary" id="next" type="button" disabled>Næste dans ▶</button>
+    </div>
+  </section>
+
+  <h2>Kø</h2>
+  <ol class="queue" id="queue"></ol>
+  <p class="empty" id="queueEmpty" hidden>Køen er tom.</p>
+
+  <div class="footer">
+    <a href="danse.html" target="_blank" rel="noopener">Se siden som gæsterne ser den ↗</a>
+    <button class="btn danger" id="clear" type="button">Ryd hele listen</button>
+  </div>
+
+  <p class="status" id="status"></p>
+</main>
+
+<script src="config.js"></script>
+<script>
+  const POLL_MS = 20000;
+
+  const nowEl = document.getElementById('now');
+  const queueEl = document.getElementById('queue');
+  const queueEmpty = document.getElementById('queueEmpty');
+  const statusEl = document.getElementById('status');
+  const nextBtn = document.getElementById('next');
+  const nameInput = document.getElementById('name');
+  let dances = [];
+  let busy = false;
+  let timer = null;
+
+  function setStatus(text, isError) {
+    statusEl.className = 'status' + (isError ? ' error' : '');
+    statusEl.textContent = text;
+  }
+
+  function btn(label, title, onClick, disabled) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn small';
+    b.textContent = label;
+    b.title = title;
+    b.setAttribute('aria-label', title);
+    b.disabled = !!disabled;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function render(data) {
+    dances = data.dances;
+    const current = dances[0];
+
+    nowEl.textContent = '';
+    if (current) {
+      nowEl.textContent = current.name;
+    } else {
+      const span = document.createElement('span');
+      span.className = 'empty';
+      span.textContent = 'Ingen dans lige nu';
+      nowEl.appendChild(span);
+    }
+    nextBtn.disabled = !current;
+
+    queueEl.textContent = '';
+    dances.forEach((dance, i) => {
+      const li = document.createElement('li');
+      if (i === 0) li.className = 'current';
+      const num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = i === 0 ? '▶' : i;
+      const txt = document.createElement('span');
+      txt.className = 'txt';
+      txt.textContent = dance.name;
+      const tools = document.createElement('span');
+      tools.className = 'tools';
+      tools.append(
+        btn('↑', 'Flyt op', () => send({ action: 'move', id: dance.id, dir: -1 }), i === 0),
+        btn('↓', 'Flyt ned', () => send({ action: 'move', id: dance.id, dir: 1 }), i === dances.length - 1),
+        btn('✕', 'Slet ' + dance.name, () => send({ action: 'remove', id: dance.id }))
+      );
+      li.append(num, txt, tools);
+      queueEl.appendChild(li);
+    });
+    queueEmpty.hidden = dances.length > 0;
+  }
+
+  async function send(body) {
+    if (busy) return;
+    busy = true;
+    setStatus('Gemmer…');
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+      render(data);
+      setStatus('Gemt ' + new Date().toLocaleTimeString('da-DK'));
+      return true;
+    } catch (err) {
+      setStatus('Kunne ikke gemme: ' + err.message, true);
+      return false;
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function refresh() {
+    if (busy) return;
+    try {
+      const res = await fetch(API_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      if (!busy) render(await res.json());
+    } catch (err) {
+      setStatus('Kunne ikke hente listen: ' + err.message, true);
+    }
+  }
+
+  document.getElementById('addForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = nameInput.value.trim();
+    if (!name) return;
+    if (await send({ action: 'add', name })) {
+      nameInput.value = '';
+      nameInput.focus();
+    }
+  });
+
+  nextBtn.addEventListener('click', () => {
+    if (dances[0]) send({ action: 'remove', id: dances[0].id });
+  });
+
+  document.getElementById('clear').addEventListener('click', () => {
+    if (dances.length && confirm('Slet alle ' + dances.length + ' danse fra listen?')) {
+      send({ action: 'clear' });
+    }
+  });
+
+  function start() {
+    clearInterval(timer);
+    refresh();
+    timer = setInterval(refresh, POLL_MS);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearInterval(timer);
+    else start();
+  });
+  document.getElementById('refresh').addEventListener('click', refresh);
+  start();
+</script>
+</body>
+</html>
